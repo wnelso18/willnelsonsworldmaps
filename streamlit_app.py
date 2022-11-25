@@ -1,5 +1,7 @@
 import streamlit as st
 import leafmap.foliumap as leafmap
+import geemap.foliumap as geemap
+import ee
 
 st.set_page_config(layout="wide")
 
@@ -30,10 +32,23 @@ markdown = """
 
 From lake recession to global land temperature changes, I will be adding more and more projects over time. 
 
+Enjoy this first Map as it shows up to date information about global wildfire locations!
+
 """
 
 st.markdown(markdown)
 
-m = leafmap.Map(minimap_control=True)
-m.add_basemap("SATELLITE")
-m.to_streamlit(height=500)
+MapF = geemap.Map()
+
+dataset = ee.ImageCollection('MODIS/061/MOD14A1') \
+                  .filter(ee.Filter.date('2016-11-25', '2016-11-30'))
+fireMaskVis = {
+  'min': 0.0,
+  'max': 6000.0,
+  'bands': ['MaxFRP', 'FireMask', 'FireMask'],
+}
+MapF.setCenter(6.746, 46.529, 2)
+MapF.addLayer(dataset, fireMaskVis, 'Fire Mask')
+MapF.add_basemap("SATELLITE")
+
+MapF.to_streamlit(height=500)
