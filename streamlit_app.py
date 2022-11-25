@@ -41,7 +41,7 @@ st.markdown(markdown)
 MapF = geemap.Map()
 
 dataset = ee.ImageCollection('MODIS/061/MOD14A1') \
-                  .filter(ee.Filter.date('2016-11-25', '2016-11-30'))
+                  .filter(ee.Filter.date('2002-11-25', '2022-11-01'))
 fireMaskVis = {
   'min': 0.0,
   'max': 6000.0,
