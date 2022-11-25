@@ -40,16 +40,33 @@ st.markdown(markdown)
 
 MapS = geemap.Map()
 
+collection = ee.FeatureCollection("TIGER/2018/States")
+
 dataset = ee.ImageCollection('MODIS/006/MOD10A1') \
                   .filter(ee.Filter.date('2022-11-01', '2022-11-22'))
+
+country = (ee.FeatureCollection('users/giswqs/public/countries'))
+
 snowCover = dataset.select('NDSI_Snow_Cover')
+
 snowCoverVis = {
   'min': 0.0,
   'max': 100.0,
   'palette': ['black', '0dffff', '0524ff', 'ffffff'],
 }
+
+style = {
+    'color':'white',
+    'width': 0.3,
+    'lineType':'solid',
+    'fillColor':'ffffff00',
+}
+
+
 MapS.setCenter(-95.13, 43.35, 3)
 MapS.add_basemap(basemap='SATELLITE')
 MapS.addLayer(snowCover, snowCoverVis, 'Snow Cover')
+MapS.addLayer(collection.style(**style), {}, 'US States')
+MapS.addLayer(country.style(**style), {}, 'World Countries')
 
 MapS.to_streamlit()
