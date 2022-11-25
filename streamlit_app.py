@@ -63,7 +63,7 @@ style = {
 }
 
 
-MapS.setCenter(-95.13, 43.35, 3)
+MapS.setCenter(-95.13, 43.35, 3.5)
 MapS.add_basemap(basemap='SATELLITE')
 MapS.addLayer(snowCover, snowCoverVis, 'Snow Cover')
 MapS.addLayer(collection.style(**style), {}, 'US States')
