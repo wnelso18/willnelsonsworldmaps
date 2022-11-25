@@ -8,14 +8,14 @@ Map = geemap.Map()
 
 land9099 = (
     ee.ImageCollection("ECMWF/ERA5_LAND/MONTHLY")
-    .filter(ee.Filter.date('9099-05-01','1999-5-01'))
+    .filter(ee.Filter.date('1990-05-01','1999-5-01'))
     .map(lambda img: img.subtract(273.15))
 )
 
 
 land1019 = (
     ee.ImageCollection("ECMWF/ERA5_LAND/MONTHLY")
-    .filter(ee.Filter.date('2010-05-01','1019-05-01'))
+    .filter(ee.Filter.date('2010-05-01','2019-05-01'))
     .map(lambda img: img.subtract(273.15))
 )
 
