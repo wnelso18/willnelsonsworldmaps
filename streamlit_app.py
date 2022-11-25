@@ -32,24 +32,24 @@ markdown = """
 
 From lake recession to global land temperature changes, I will be adding more and more projects over time. 
 
-Enjoy this first Map as it shows up to date information about global wildfire locations!
+Enjoy this first Map as it shows up to date information about global snow cover!
 
 """
 
 st.markdown(markdown)
 
-MapF = geemap.Map()
+MapS = geemap.Map()
 
-dataset = ee.ImageCollection('MODIS/061/MOD14A1') \
-                  .filter(ee.Filter.date('2002-11-25', '2022-11-01'))
-fireMaskVis = {
+dataset = ee.ImageCollection('MODIS/006/MOD10A1') \
+                  .filter(ee.Filter.date('2022-11-01', '2022-11-22'))
+snowCover = dataset.select('NDSI_Snow_Cover')
+snowCoverVis = {
   'min': 0.0,
-  'max': 6000.0,
-  'bands': ['MaxFRP', 'FireMask', 'FireMask'],
+  'max': 100.0,
+  'palette': ['black', '0dffff', '0524ff', 'ffffff'],
 }
-MapF.setCenter(6.746, 46.529, 2)
-MapF.add_basemap("SATELLITE")
-MapF.addLayer(dataset, fireMaskVis, 'Fire Mask')
+MapS.setCenter(-95.13, 43.35, 3)
+MapS.add_basemap(basemap='SATELLITE')
+MapS.addLayer(snowCover, snowCoverVis, 'Snow Cover')
 
-
-MapF.to_streamlit(height=500)
+MapS.to_streamlit()
