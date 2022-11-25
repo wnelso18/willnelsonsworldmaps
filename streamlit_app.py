@@ -48,7 +48,8 @@ fireMaskVis = {
   'bands': ['MaxFRP', 'FireMask', 'FireMask'],
 }
 MapF.setCenter(6.746, 46.529, 2)
-MapF.addLayer(dataset, fireMaskVis, 'Fire Mask')
 MapF.add_basemap("SATELLITE")
+MapF.addLayer(dataset, fireMaskVis, 'Fire Mask')
+
 
 MapF.to_streamlit(height=500)
