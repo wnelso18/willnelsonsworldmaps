@@ -5,6 +5,10 @@ import geemap.foliumap as geemap
 st.set_page_config(layout="wide")
 
 
+st.header('Lake Recession')
+
+st.markdown("""All maps show the same time period change from 2001-2020""")
+
 # ---------------------------------------------------------------------------------------------------
 # Map1: Lake Mead
 
@@ -23,7 +27,7 @@ collection2 = (
 )
 
 vis = {
-  'bands': ['SR_B3', 'SR_B2', 'SR_B1'],
+  'bands': ['SR_B1', 'SR_B4', 'SR_B7'],
   'min': 0.0,
   'max': 40000,
 }
@@ -52,7 +56,7 @@ collection2 = (
 )
 
 vis = {
-  'bands': ['SR_B3', 'SR_B2', 'SR_B1'],
+  'bands': ['SR_B1', 'SR_B4', 'SR_B7'],
   'min': 0.0,
   'max': 40000,
 }
@@ -81,7 +85,7 @@ collection2 = (
 )
 
 vis = {
-  'bands': ['SR_B3', 'SR_B2', 'SR_B1'],
+  'bands': ['SR_B1', 'SR_B4', 'SR_B7'],
   'min': 0.0,
   'max': 40000,
 }
@@ -110,7 +114,7 @@ collection2 = (
 )
 
 vis = {
-  'bands': ['SR_B3', 'SR_B2', 'SR_B1'],
+  'bands': ['SR_B1', 'SR_B4', 'SR_B7'],
   'min': 0.0,
   'max': 40000,
 }
@@ -125,18 +129,18 @@ Map4.setCenter(59.013008598795004, 45.25402686187612, 8)
 
 option = st.selectbox(
     'Which lake would you like to view?',
-    ('Lake Mead', 'Salton Sea', 'Salt Lake', 'Aral Sea'))
+    ('Lake Mead, NV', 'Salton Sea, CA', 'Salt Lake, UT', 'Aral Sea, Kazakhstan/Uzebekistan'))
 
-if option == 'Lake Mead':
+if option == 'Lake Mead, NV':
     Map1.to_streamlit(height=600)
 
-elif option == 'Salton Sea':
+elif option == 'Salton Sea, CA':
     Map2.to_streamlit(height=600)
 
-elif option == 'Salt Lake':
+elif option == 'Great Salt Lake, UT':
     Map3.to_streamlit(height=600)
 
-elif option == 'Aral Sea':
+elif option == 'Aral Sea, Kazakhstan/Uzebekistan':
     Map4.to_streamlit(height=600)
 
 # ---------------------------------------------------------------------------------------------------

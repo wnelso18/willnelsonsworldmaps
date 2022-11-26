@@ -32,7 +32,7 @@ markdown = """
 
 From lake recession to global land temperature changes, I will be adding more and more projects over time. 
 
-Enjoy this first Map as it shows up to date information about global snow cover!
+Enjoy this first Map as it shows up-to-date information about global snow cover!
 
 """
 

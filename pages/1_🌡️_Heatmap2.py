@@ -1,8 +1,20 @@
 import streamlit as st
 import ee
 import geemap.foliumap as geemap
+# import ipywidgets as widgets
+# from ipyleaflet import WidgetControl
 
 st.set_page_config(layout="wide")
+
+st.header('Global Land Temperatures')
+
+st.markdown(
+    """
+    The split map below shows the average global land temperatures. On the left side of the slider,
+    average land temperatures from 1990-1999 are displayed. On the right side of the slider, average
+    land temperatures from 2010-2019 are displayed.
+    """
+)
 
 Map = geemap.Map()
 
@@ -38,4 +50,11 @@ right_layer = geemap.ee_tile_layer(land1019, vis, 'Land Temps 1019')
 Map.split_map(left_layer, right_layer)
 Map.add_colorbar(vis, label="Temp (C)", layer_name="Land Temp")
 
-Map.to_streamlit(height=700)
+Map.to_streamlit(height=600)
+
+st.markdown(
+    """
+    The layer for this map was acquired through Google Earth Engine Datasets. 
+    Temperature data was recorded by Copernicus Climate Data.
+    """
+)
