@@ -132,7 +132,7 @@ Map4.setCenter(59.013008598795004, 45.25402686187612, 8)
 
 option = st.selectbox(
     'Which lake would you like to view?',
-    ('Lake Mead, NV', 'Salton Sea, CA', 'Salt Lake, UT', 'Aral Sea, Kazakhstan/Uzebekistan'))
+    ('Lake Mead, NV', 'Salton Sea, CA', 'Great Salt Lake, UT', 'Aral Sea, Kazakhstan/Uzebekistan'))
 
 if option == 'Lake Mead, NV':
     Map1.to_streamlit(height=600)
