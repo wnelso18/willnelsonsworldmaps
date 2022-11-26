@@ -7,7 +7,10 @@ st.set_page_config(layout="wide")
 
 st.header('Lake Recession')
 
-st.markdown("""All maps show the same time period change from 2001-2020""")
+st.markdown("""All maps show the same time period change from 2001-2020
+
+The left side of the slider is 2001 and the right side is 2020.
+""")
 
 # ---------------------------------------------------------------------------------------------------
 # Map1: Lake Mead
