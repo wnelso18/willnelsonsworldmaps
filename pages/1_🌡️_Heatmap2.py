@@ -1,8 +1,7 @@
 import streamlit as st
 import ee
 import geemap.foliumap as geemap
-# import ipywidgets as widgets
-# from ipyleaflet import WidgetControl
+
 
 st.set_page_config(layout="wide")
 
@@ -47,9 +46,40 @@ vis = {
 left_layer = geemap.ee_tile_layer(land9099, vis, 'Land Temps 1985')
 right_layer = geemap.ee_tile_layer(land1019, vis, 'Land Temps 1019')
 
+# --------------------------------------------------------------------------------------
+
+
+date1 = '1990-1999'
+date2 = '2010-2019'
+
+params1 = {
+    'fontsize': 30,
+    'fontcolor': 'blue',
+    'bold': True,
+    'padding': '10px',
+    'background': True,
+    'bg_color': 'white',
+    'border_radius': '5px',
+    'position': 'bottomleft',
+}
+
+params2 = {
+    'fontsize': 30,
+    'fontcolor': 'blue',
+    'bold': True,
+    'padding': '10px',
+    'background': True,
+    'bg_color': 'white',
+    'border_radius': '5px',
+    'position': 'bottomright',
+}
+
+# --------------------------------------------------------------------------------------
+
 Map.split_map(left_layer, right_layer)
 Map.add_colorbar(vis, label="Temp (C)", layer_name="Land Temp")
-
+Map.add_text(date1, **params1)
+Map.add_text(date2, **params2)
 Map.to_streamlit(height=600)
 
 st.markdown(
