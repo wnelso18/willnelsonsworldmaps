@@ -12,6 +12,33 @@ st.markdown("""All maps show the same time period change from 2001-2020
 The left side of the slider is 2001 and the right side is 2020.
 """)
 
+
+date1 = '2001'
+date2 = '2020'
+
+params1 = {
+    'fontsize': 30,
+    'fontcolor': 'blue',
+    'bold': True,
+    'padding': '10px',
+    'background': True,
+    'bg_color': 'white',
+    'border_radius': '5px',
+    'position': 'bottomleft',
+}
+
+params2 = {
+    'fontsize': 30,
+    'fontcolor': 'blue',
+    'bold': True,
+    'padding': '10px',
+    'background': True,
+    'bg_color': 'white',
+    'border_radius': '5px',
+    'position': 'bottomright',
+}
+
+
 # ---------------------------------------------------------------------------------------------------
 # Map1: Lake Mead
 
@@ -37,7 +64,8 @@ vis = {
 
 left = geemap.ee_tile_layer(collection1, vis, 'Year of 2001')
 right = geemap.ee_tile_layer(collection2, vis, 'Year of 2020')
-
+Map1.add_text(date1, **params1)
+Map1.add_text(date2, **params2)
 Map1.split_map(left, right)
 Map1.setCenter(-114.41, 36.20, 10.2)
 
@@ -66,7 +94,8 @@ vis = {
 
 left = geemap.ee_tile_layer(collection1, vis, 'Year of 2001')
 right = geemap.ee_tile_layer(collection2, vis, 'Year of 2020')
-
+Map2.add_text(date1, **params1)
+Map2.add_text(date2, **params2)
 Map2.split_map(left, right)
 Map2.setCenter( -115.85446197484563,33.31321356759435, 10)
 
@@ -95,7 +124,8 @@ vis = {
 
 left = geemap.ee_tile_layer(collection1, vis, 'Year of 2001')
 right = geemap.ee_tile_layer(collection2, vis, 'Year of 2020')
-
+Map3.add_text(date1, **params1)
+Map3.add_text(date2, **params2)
 Map3.split_map(left, right)
 Map3.setCenter(-112.43915367456692, 41.08008337991904, 9.3)
 
@@ -124,7 +154,8 @@ vis = {
 
 left = geemap.ee_tile_layer(collection1, vis, 'Year of 2001')
 right = geemap.ee_tile_layer(collection2, vis, 'Year of 2020')
-
+Map4.add_text(date1, **params1)
+Map4.add_text(date2, **params2)
 Map4.split_map(left, right)
 Map4.setCenter(59.013008598795004, 45.25402686187612, 8)
 
