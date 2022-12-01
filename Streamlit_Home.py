@@ -22,7 +22,8 @@ st.title("Gesopatial Applications for Dynamically Viewing Earth!")
 
 st.markdown(
     """
-    This website is a branch off of my personal website 'Will Nelson's World'. Here you can find my python-created geospatial applications. 
+    This website is a branch off of my personal website 'Will Nelson's World'. Here you can find my python-created geospatial applications:
+    https://willnelsonsworld-production.up.railway.app/
     """
 )
 
