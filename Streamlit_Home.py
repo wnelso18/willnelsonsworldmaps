@@ -7,7 +7,7 @@ st.set_page_config(layout="wide")
 
 # Customize the sidebar
 markdown = """
-To return to my personal website follow this link: 
+To return to my personal website follow this link: https://willnelsonsworld-production.up.railway.app/
 
 GitHub Repository: https://github.com/wnelso18/willnelsonsworldmaps
 """
@@ -22,8 +22,7 @@ st.title("Gesopatial Applications for Dynamically Viewing Earth!")
 
 st.markdown(
     """
-    This website is a branch off of my personal website 'Will Nelson's World'. Here you can find my python-created geospatial applications:
-    https://willnelsonsworld-production.up.railway.app/
+    This website is a branch off of my personal website 'Will Nelson's World'. Here you can find my python-created geospatial applications.
     """
 )
 
