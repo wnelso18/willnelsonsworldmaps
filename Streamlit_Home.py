@@ -43,7 +43,7 @@ MapS = geemap.Map()
 collection = ee.FeatureCollection("TIGER/2018/States")
 
 dataset = ee.ImageCollection('MODIS/006/MOD10A1') \
-                  .filter(ee.Filter.date('2022-11-01', '2022-11-29'))
+                  .filter(ee.Filter.date('2022-11-01', '2022-11-30'))
 
 country = (ee.FeatureCollection('users/giswqs/public/countries'))
 
