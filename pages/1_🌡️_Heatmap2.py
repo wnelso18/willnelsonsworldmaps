@@ -43,7 +43,7 @@ vis = {
 }
 
 
-left_layer = geemap.ee_tile_layer(land9099, vis, 'Land Temps 1985')
+left_layer = geemap.ee_tile_layer(land9099, vis, 'Land Temps 9099')
 right_layer = geemap.ee_tile_layer(land1019, vis, 'Land Temps 1019')
 
 # --------------------------------------------------------------------------------------
