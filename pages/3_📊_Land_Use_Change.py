@@ -92,8 +92,7 @@ with row1_col2:
         pie_chart = st.checkbox("Pie Chart")
         scatter_plot = st.checkbox("Scatter Plot")
         st.write("Note: Year selected above file uploader will be used for the histogram and pie chart")
-        # st.markdown("""--------------""")
-        # sankey = st.checkbox("Sankey Diagram")
+        st.markdown("""--------------""")
         st.write("Select what years you would like to compare for the scatter plot:")
         year1 = st.selectbox('Year 1', ('2001', '2004', '2006', '2008', '2011', '2013', '2016', '2019'))
         year2 = st.selectbox('Year 2', ('2001', '2004', '2006', '2008', '2011', '2013', '2016', '2019'))
@@ -105,116 +104,11 @@ with row1_col2:
         st.write(f"Histogram = *{histogram}*")
         st.write(f"Pie Chart = *{pie_chart}*")
         st.write(f"Scatter Plot Comparison = *{scatter_plot}*")
-        # st.write(f"Sankey Diagram = *{sankey}*")
-        # st.write(f"Start Year: {year1}, \t End Year: {year2}")
 
         logo = "images/legend.jpg"
         st.sidebar.image(logo)
 
-        # SANKEY DIAGRAM --------------------------------------------
-
-#         if sankey == True:
-#             if year1 == year2:
-#                 st.error("Please select two different years for the sankey diagram")
-#                 quit()
-#             elif year1 > year2:
-#                 st.error("Please select a year that is greater than the first year")
-#                 quit()
-
-#             else:
-                
-#                 nlcd2 = dataset.filter(ee.Filter.eq('system:index', f'{year1}')).first()
-#                 landcover2 = nlcd2.select('landcover')
-            
-#                 nlcd3 = dataset.filter(ee.Filter.eq('system:index', f'{year2}')).first()
-#                 landcover3 = nlcd3.select('landcover')
-
-#                 # STATS FOR SANKEY --------------------------------------------
-
-#                 year1_csv = "zonal_stats_year1.csv"
-#                 year2_csv = "zonal_stats_year2.csv"
-
-#                 geemap.zonal_stats_by_group(landcover2, st.session_state["roi"], year1_csv, statistics_type='PERCENTAGE', scale=30)
-#                 geemap.zonal_stats_by_group(landcover3, st.session_state["roi"], year2_csv, statistics_type='PERCENTAGE', scale=30)
-                
-                
-#                 # TRANSPOSE THE CSV FILES --------------------------------------------
-
-#                 gdf_csv = gpd.read_file(year1_csv)
-#                 transposed_gdf = gdf_csv.T
-#                 zst1 = transposed_gdf.to_csv('year1_transposed.csv', index=True, header=True)
-#                 zst1 = pd.read_csv('year1_transposed.csv')
-#                 zst1 = zst1.set_index('Unnamed: 0') # set the index to the first column
-#                 zst1 = zst1.drop('Class_sum', axis=0) # drop the row that contains 'Class_sum'
-#                 zst1 = zst1.drop('system:index', axis=0) # drop the row that contains 'system:index'
-#                 zst1.to_csv('year1_transposed.csv', index=True, header=True)
-#                 zst1 = pd.read_csv('year1_transposed.csv')
-                
-#                 gdf_csv = gpd.read_file(year2_csv)
-#                 transposed_gdf = gdf_csv.T
-#                 zst2 = transposed_gdf.to_csv('year2_transposed.csv', index=True, header=True)
-#                 zst2 = pd.read_csv('year2_transposed.csv')
-#                 zst2 = zst2.set_index('Unnamed: 0') # set the index to the first column
-#                 zst2 = zst2.drop('Class_sum', axis=0) # drop the row that contains 'Class_sum'
-#                 zst2 = zst2.drop('system:index', axis=0) # drop the row that contains 'system:index'
-#                 zst2.to_csv('year2_transposed.csv', index=True, header=True)
-#                 zst2 = pd.read_csv('year2_transposed.csv')
-
-#                 # SANKEY DIAGRAM --------------------------------------------
-
-#                 merged_df = pd.merge(zst1, zst2, on='Unnamed: 0')
-#                 merged_df_csv = merged_df.to_csv('merged_df.csv', index=True, header=True)
-
-# # TRY1 -----------------------------------------------------------------------------------
-#                 # fig = go.Figure(data=[go.Sankey(
-#                 #     node = dict(
-#                 #       pad = 15,
-#                 #       thickness = 20,
-#                 #       line = dict(color = "black", width = 0.5),
-#                 #       label = merged_df['Unnamed: 0'],
-#                 #       color = "blue"
-#                 #     ),
-#                 #     link = dict(
-#                 #       source = merged_df['0_x'], # indices correspond to labels, eg A1, A2, A2, B1, ...
-#                 #       target = merged_df['0_y'],
-#                 #       value = merged_df['Unnamed: 0'],
-#                 #       color = ["blue", "red"]
-#                 #   ))])
-                
-#                 # fig.update_layout(title_text="Sankey Diagram", font_size=10)
-
-#                 # with row1_col1:
-#                 #     st.plotly_chart(fig, use_container_width=True)
-                
-# # TRY2 -----------------------------------------------------------------------------------
-#                 # Load the merged DataFrame from the CSV file
-#                 merged_df = pd.read_csv('merged_df.csv', index_col=0)
-
-#                 # Define the source and target nodes
-#                 sources = merged_df['0_x']
-#                 targets = merged_df['0_y']
-
-#                 # Define the link values
-#                 values = merged_df['Unnamed: 0']
-
-#                 # Create a list of unique nodes
-#                 nodes = list(set(sources.tolist() + targets.tolist()))
-
-#                 # Create the node dictionary
-#                 node_dict = dict(label=nodes, pad=15, thickness=20, line=dict(color="black", width=0.5), color="blue")
-
-#                 # Create the link dictionary
-#                 link_dict = dict(source=sources, target=targets, value=values, color=["blue", "red"])
-
-#                 # Create the Plotly Sankey diagram
-#                 fig = go.Figure(data=[go.Sankey(node=node_dict, link=link_dict)])
-
-#                 # Set the layout of the Sankey diagram
-#                 fig.update_layout(title_text="Sankey Diagram", font_size=10)
-
-#                 with row1_col1:
-#                     # Display the Sankey diagram in Streamlit
-#                     st.plotly_chart(fig, use_container_width=True)
+ 
         
         # HISTOGRAM -------------------------------------------------
 
