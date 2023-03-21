@@ -131,8 +131,8 @@ with row1_col2:
                 year1_csv = "zonal_stats_year1.csv"
                 year2_csv = "zonal_stats_year2.csv"
 
-                geemap.zonal_stats_by_group(landcover2, st.session_state["roi"], year1_csv, statistics_type='SUM', scale=30)
-                geemap.zonal_stats_by_group(landcover3, st.session_state["roi"], year2_csv, statistics_type='SUM', scale=30)
+                geemap.zonal_stats_by_group(landcover2, st.session_state["roi"], year1_csv, statistics_type='PERCENTAGE', scale=30)
+                geemap.zonal_stats_by_group(landcover3, st.session_state["roi"], year2_csv, statistics_type='PERCENTAGE', scale=30)
                 
                 
                 # TRANSPOSE THE CSV FILES --------------------------------------------
@@ -161,7 +161,8 @@ with row1_col2:
 
                 merged_df = pd.merge(zst1, zst2, on='Unnamed: 0')
                 merged_df_csv = merged_df.to_csv('merged_df.csv', index=True, header=True)
-                
+
+# TRY1 -----------------------------------------------------------------------------------
                 # fig = go.Figure(data=[go.Sankey(
                 #     node = dict(
                 #       pad = 15,
@@ -182,7 +183,7 @@ with row1_col2:
                 # with row1_col1:
                 #     st.plotly_chart(fig, use_container_width=True)
                 
-                
+# TRY2 -----------------------------------------------------------------------------------
                 # Load the merged DataFrame from the CSV file
                 merged_df = pd.read_csv('merged_df.csv', index_col=0)
 
@@ -245,7 +246,7 @@ with row1_col2:
                 x='Unnamed: 0',
                 y='0',
                 x_label="Landcover",
-                y_label="Area (m2)",
+                y_label="Area (km2)",
                 descending=True,
                 max_rows=15,
                 title="Histogram",
