@@ -269,11 +269,11 @@ with row1_col2:
                 percent_gain_loss = calc.loc[calc['Unnamed: 0']== class_number, 'Percent Gain/Loss'].values[0]
                 if percent_gain_loss is not None:
                     if percent_gain_loss > 0:
-                        st.write(f"🔺 {percent_gain_loss:.2f}%")
+                        st.write(f"🔺 {percent_gain_loss:.2f}% from {year1} to {year2}")
                     elif percent_gain_loss < 0:
-                        st.write(f"🔻 {percent_gain_loss:.2f}%")
+                        st.write(f"🔻 {percent_gain_loss:.2f}% from {year1} to {year2}")
                     else:
-                        st.write(f"{percent_gain_loss:.2f}%")
+                        st.write(f"{percent_gain_loss:.2f}% from {year1} to {year2}")
                 else:
                     st.write(f"No data found for class {class_number}")
             except KeyError:
