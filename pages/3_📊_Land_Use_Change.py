@@ -11,8 +11,12 @@ import sankee
 import plotly.graph_objects as go
 import plotly.express as px
 
-
-
+# Create dictionary of landcover classes
+# dict = {Class_11: 'Open Water', Class_12: 'Perennial Ice/Snow', Class_21: 'Developed, Open Space', Class_22: 'Developed, Low Intensity', 
+#         Class_23: 'Developed, Medium Intensity', Class_24: 'Developed, High Intensity', Class_31: 'Barren Land (Rock/Sand/Clay)', Class_41: 'Deciduous Forest', 
+#         Class_42: 'Evergreen Forest', Class_43: 'Mixed Forest', Class_51: 'Dwarf Scrub', Class_52: 'Shrub/Scrub', Class_71: 'Grassland/Herbaceous', 
+#         Class_72: 'Sedge/Herbaceous', Class_73: 'Lichens', Class_74: 'Moss', Class_81: 'Pasture/Hay', Class_82: 'Cultivated Crops', 
+#         Class_90: 'Woody Wetlands', Class_95: 'Emergent Herbaceous Wetlands'}
 
 st.set_page_config(layout='wide')
 
@@ -108,8 +112,6 @@ with row1_col2:
         logo = "images/legend.jpg"
         st.sidebar.image(logo)
 
- 
-        
         # HISTOGRAM -------------------------------------------------
 
         if histogram == True:
@@ -130,6 +132,7 @@ with row1_col2:
             transposed_gdf = gdf_csv.T
             zst = transposed_gdf.to_csv('zonal_stats_transposed.csv', index=True, header=True)
             zst = pd.read_csv('zonal_stats_transposed.csv')
+
             zst = zst.set_index('Unnamed: 0') # set the index to the first column
             zst = zst.drop('Class_sum', axis=0) # drop the row that contains 'Class_sum'
             zst = zst.drop('system:index', axis=0) # drop the row that contains 'system:index'
@@ -211,6 +214,7 @@ with row1_col2:
             zst2 = pd.read_csv('year2_transposed.csv')
 
             merged_df1 = pd.merge(zst1, zst2, on='Unnamed: 0')
+            merged_df_csv = merged_df1.to_csv('merged_df.csv', index=True, header=True)
 
             # Reshape the dataframe
             merged_df = merged_df1.melt(id_vars=['Unnamed: 0'], var_name='File', value_name='Coverage (km2)')
@@ -227,3 +231,209 @@ with row1_col2:
 
             with row1_col1:
                 st.plotly_chart(fig, use_container_width=True)
+
+            # Form for Percent Gain/Loss --------------------------------------------
+
+with row1_col2:
+
+    with st.form('class_selection'):
+        st.write("Pick which landcover class(es) you would like to calculate the percent gain/loss for.")
+        Class_11 = st.checkbox("11 - Open Water")
+        Class_12 = st.checkbox("12 - Perennial Ice/Snow")
+        Class_21 = st.checkbox("21 - Developed, Open Space")
+        Class_22 = st.checkbox("22 - Developed, Low Intensity")
+        Class_23 = st.checkbox("23 - Developed, Medium Intensity")
+        Class_24 = st.checkbox("24 - Developed, High Intensity")
+        Class_31 = st.checkbox("31 - Barren Land (Rock/Sand/Clay)")
+        Class_41 = st.checkbox("41 - Deciduous Forest")
+        Class_42 = st.checkbox("42 - Evergreen Forest")
+        Class_43 = st.checkbox("43 - Mixed Forest")
+        Class_51 = st.checkbox("51 - Dwarf Scrub")
+        Class_52 = st.checkbox("52 - Shrub/Scrub")
+        Class_71 = st.checkbox("71 - Grassland/Herbaceous")
+        Class_72 = st.checkbox("72 - Sedge/Herbaceous")
+        Class_73 = st.checkbox("73 - Lichens")
+        Class_74 = st.checkbox("74 - Moss")
+        Class_81 = st.checkbox("81 - Pasture/Hay")
+        Class_82 = st.checkbox("82 - Cultivated Crops")
+        Class_90 = st.checkbox("90 - Woody Wetlands")
+        Class_95 = st.checkbox("95 - Emergent Herbaceous Wetlands")
+
+        submit_button2 = st.form_submit_button("Submit Selection")
+
+    if submit_button2:
+        def calculate_percent_gain_loss(class_number):
+            calc = pd.read_csv('merged_df.csv')
+            calc['Percent Gain/Loss'] = (calc['0_y'] - calc['0_x']) / calc['0_x'] * 100
+            try:
+                percent_gain_loss = calc.loc[calc['Unnamed: 0']== class_number, 'Percent Gain/Loss'].values[0]
+                if percent_gain_loss is not None:
+                    if percent_gain_loss > 0:
+                        st.write(f"🔺 {percent_gain_loss:.2f}%")
+                    elif percent_gain_loss < 0:
+                        st.write(f"🔻 {percent_gain_loss:.2f}%")
+                    else:
+                        st.write(f"{percent_gain_loss:.2f}%")
+                else:
+                    st.write(f"No data found for class {class_number}")
+            except KeyError:
+                st.write(f"No data found for class {class_number}")
+            except IndexError:
+                st.write(f"No data found for class {class_number}")
+
+
+        with row1_col1:
+            if Class_11 == True:
+                st.write("11 - Open Water")
+                class_number = 'Class_11'
+                calculate_percent_gain_loss(class_number)
+
+
+
+            if Class_12 == True:
+                st.write("12 - Perennial Ice/Snow")
+                class_number = 'Class_12'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_21 == True:
+                st.write("21 - Developed, Open Space")
+                class_number = 'Class_21'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_22 == True:
+                st.write("22 - Developed, Low Intensity")
+                class_number = 'Class_22'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_23 == True:
+                st.write("23 - Developed, Medium Intensity")
+                class_number = 'Class_23'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_24 == True:
+                st.write("24 - Developed, High Intensity")
+                class_number = 'Class_24'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_31 == True:
+                st.write("31 - Barren Land (Rock/Sand/Clay)")
+                class_number = 'Class_31'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_41 == True:
+                st.write("41 - Deciduous Forest")
+                class_number = 'Class_41'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_42 == True:
+                st.write("42 - Evergreen Forest")
+                class_number = 'Class_42'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_43 == True:
+                st.write("43 - Mixed Forest")
+                class_number = 'Class_43'
+                calculate_percent_gain_loss(class_number)
+
+
+
+            if Class_51 == True:
+                st.write("51 - Dwarf Scrub")
+                class_number = 'Class_51'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_52 == True:
+                st.write("52 - Shrub/Scrub")
+                class_number = 'Class_52'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_71 == True:
+                st.write("71 - Grassland/Herbaceous")
+                class_number = 'Class_71'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_72 == True:
+                st.write("72 - Sedge/Herbaceous")
+                class_number = 'Class_72'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_73 == True:
+                st.write("73 - Lichens")
+                class_number = 'Class_73'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_74 == True:
+                st.write("74 - Moss")
+                class_number = 'Class_74'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_81 == True:
+                st.write("81 - Pasture/Hay")
+                class_number = 'Class_81'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_82 == True:
+                st.write("82 - Cultivated Crops")
+                class_number = 'Class_82'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_90 == True:
+                st.write("90 - Woody Wetlands")
+                class_number = 'Class_90'
+                calculate_percent_gain_loss(class_number)
+
+
+
+
+            if Class_95 == True:
+                st.write("95 - Emergent Herbaceous Wetlands")
+                class_number = 'Class_95'
+                calculate_percent_gain_loss(class_number)
