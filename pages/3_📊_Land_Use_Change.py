@@ -45,6 +45,13 @@ row1_col1, row1_col2 = st.columns([3, 1])
 
 with row1_col1:
 
+    st.title("Land Use Change in the United States")
+    st.write("- This app allows you to view the land use change in the United States from 2001 to 2019. ")
+    st.write("- You can select a year to view the land use for that year. ")
+    st.write("- You can also upload a .geojson file to view the land use change for a specific area. ")
+    st.write("- You can also view a histogram, pie chart, and scatter plot comparison of the land use change for two different years.")
+    st.write("- Finally, you can see the percent gain and loss of each land use class for the area you selected over the time interval.")
+
     year = st.selectbox('Select a Year to View', ('2001', '2004', '2006', '2008', '2011', '2013', '2016', '2019'))
 
     Map1 = geemap.Map(  
@@ -91,6 +98,7 @@ with row1_col2:
 # STATS SELECTION ---------------------------------------------------------------------------------------------------
 
     with st.form("stats_select"):
+        st.header("Check the Stats!")
         st.write("Select which diagram(s) you would like to view below:")
         histogram = st.checkbox("Histogram")
         pie_chart = st.checkbox("Pie Chart")
@@ -237,6 +245,8 @@ with row1_col2:
 with row1_col2:
 
     with st.form('class_selection'):
+        st.header("Percent Gain/Loss")
+        st.write("NOTE: Make sure you have submitted the first form before submitting this one!")
         st.write("Pick which landcover class(es) you would like to calculate the percent gain/loss for.")
         Class_11 = st.checkbox("11 - Open Water", value=True)
         Class_12 = st.checkbox("12 - Perennial Ice/Snow", value=True)
