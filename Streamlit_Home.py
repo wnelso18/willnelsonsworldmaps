@@ -18,7 +18,7 @@ logo = "images/powerT.png"
 st.sidebar.image(logo)
 
 # Customize page title
-st.title("Gesopatial Applications for Dynamically Viewing Earth!")
+st.title("Geospatial Applications for Dynamically Viewing Earth!")
 
 st.markdown(
     """
