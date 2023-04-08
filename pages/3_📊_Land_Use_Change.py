@@ -7,7 +7,6 @@ import tempfile
 import os
 import uuid
 import fiona
-import sankee
 import plotly.graph_objects as go
 import plotly.express as px
 
