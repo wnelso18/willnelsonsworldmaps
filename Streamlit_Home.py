@@ -49,6 +49,7 @@ country = (ee.FeatureCollection('users/giswqs/public/countries'))
 
 snowCover = dataset.select('NDSI_Snow_Cover')
 
+
 snowCoverVis = {
   'min': 0.0,
   'max': 100.0,
