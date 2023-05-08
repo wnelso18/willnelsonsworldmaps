@@ -8,3 +8,4 @@ owslib
 streamlit
 protobuf
 plotly
+tight_loops
