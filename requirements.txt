@@ -9,4 +9,3 @@ streamlit
 protobuf
 plotly
 tight_loops
-fiona
