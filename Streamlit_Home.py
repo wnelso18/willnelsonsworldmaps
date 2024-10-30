@@ -6,9 +6,9 @@ import ee
 st.set_page_config(layout="wide")
 
 # Customize the sidebar
-markdown = """
-To return to my personal website follow this link: https://willnelsonsworld-production.up.railway.app/
+# To return to my personal website follow this link: https://willnelsonsworld-production.up.railway.app/
 
+markdown = """
 GitHub Repository: https://github.com/wnelso18/willnelsonsworldmaps
 """
 
