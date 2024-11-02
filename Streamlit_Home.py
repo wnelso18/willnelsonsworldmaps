@@ -12,7 +12,7 @@ markdown = """
 GitHub Repository: https://github.com/wnelso18/willnelsonsworldmaps
 """
 
-st.sidebar.title("About")
+st.sidebar.title("Info:")
 st.sidebar.info(markdown)
 logo = "images/powerT.png"
 st.sidebar.image(logo)
