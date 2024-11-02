@@ -6,7 +6,7 @@ import pandas as pd
 import tempfile
 import os
 import uuid
-import fiona
+# import fiona
 import plotly.graph_objects as go
 import plotly.express as px
 
