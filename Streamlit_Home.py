@@ -3,6 +3,21 @@ import leafmap.foliumap as leafmap
 import geemap.foliumap as geemap
 import ee
 
+if "ee_service_account" in st.secrets:
+    sa = st.secrets["ee_service_account"]
+    key_json = st.secrets["ee_private_key"]   # paste the entire JSON key into this secret
+    project = st.secrets["ee_project"]
+
+    credentials = ee.ServiceAccountCredentials(sa, key_data=key_json)
+    ee.Initialize(credentials=credentials, project=project)
+else:
+    # Local dev fallback (interactive on your laptop only)
+    try:
+        ee.Initialize()
+    except Exception:
+        ee.Authenticate()
+        ee.Initialize()
+
 st.set_page_config(layout="wide")
 
 # Customize the sidebar
