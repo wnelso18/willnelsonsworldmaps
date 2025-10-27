@@ -4,7 +4,7 @@ import geemap.foliumap as geemap
 import ee
 
 
-
+# AUTHENTICATE AND INITIALIZE EARTH ENGINE-----------------------------------------------------------------------
 import json, os
 from google.oauth2.credentials import Credentials as UserCredentials
 
@@ -41,8 +41,7 @@ else:
         ee.Authenticate()
         ee.Initialize(project=project)
 
-
-
+# AUTHENTICATE AND INITIALIZE EARTH ENGINE (end)-------------------------------------------------------------------
 
 
 st.set_page_config(layout="wide")
