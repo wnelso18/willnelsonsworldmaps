@@ -3,20 +3,55 @@ import leafmap.foliumap as leafmap
 import geemap.foliumap as geemap
 import ee
 
-if "ee_service_account" in st.secrets:
-    sa = st.secrets["ee_service_account"]
-    key_json = st.secrets["ee_private_key"]   # paste the entire JSON key into this secret
-    project = st.secrets["ee_project"]
+import os, json
+from google.oauth2 import service_account
 
-    credentials = ee.ServiceAccountCredentials(sa, key_data=key_json)
-    ee.Initialize(credentials=credentials, project=project)
+def _get_ee_credentials():
+    """
+    Load EE service account creds from Streamlit secrets or environment.
+    
+    """
+    if "ee_private_key" in st.secrets:
+        key_obj = st.secrets["ee_private_key"]
+
+        if isinstance(key_obj, str):
+            info = json.loads(key_obj)
+        else:
+            info = dict(key_obj)
+        return service_account.Credentials.from_service_account_info(
+            info,
+            scopes=[
+                "https://www.googleapis.com/auth/earthengine",
+                "https://www.googleapis.com/auth/devstorage.full_control",
+            ],
+        )
+
+    # 2) (Optional) fallback to environment variables if you deploy elsewhere
+    #    Set EE_PRIVATE_KEY_JSON to the full JSON *string*
+    env_json = os.environ.get("EE_PRIVATE_KEY_JSON")
+    if env_json:
+        info = json.loads(env_json)
+        return service_account.Credentials.from_service_account_info(
+            info,
+            scopes=[
+                "https://www.googleapis.com/auth/earthengine",
+                "https://www.googleapis.com/auth/devstorage.full_control",
+            ],
+        )
+
+    return None
+
+creds = _get_ee_credentials()
+project = st.secrets.get("ee_project", os.environ.get("EE_PROJECT"))
+
+if creds and project:
+    ee.Initialize(credentials=creds, project=project)
 else:
-    # Local dev fallback (interactive on your laptop only)
     try:
-        ee.Initialize()
+        ee.Initialize(project=project)
     except Exception:
         ee.Authenticate()
-        ee.Initialize()
+        ee.Initialize(project=project)
 
 st.set_page_config(layout="wide")
 
