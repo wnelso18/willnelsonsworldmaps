@@ -3,55 +3,47 @@ import leafmap.foliumap as leafmap
 import geemap.foliumap as geemap
 import ee
 
-import os, json
-from google.oauth2 import service_account
 
-def _get_ee_credentials():
-    """
-    Load EE service account creds from Streamlit secrets or environment.
-    
-    """
-    if "ee_private_key" in st.secrets:
-        key_obj = st.secrets["ee_private_key"]
 
-        if isinstance(key_obj, str):
-            info = json.loads(key_obj)
-        else:
-            info = dict(key_obj)
-        return service_account.Credentials.from_service_account_info(
-            info,
-            scopes=[
-                "https://www.googleapis.com/auth/earthengine",
-                "https://www.googleapis.com/auth/devstorage.full_control",
-            ],
-        )
+import json, os
+from google.oauth2.credentials import Credentials as UserCredentials
 
-    # 2) (Optional) fallback to environment variables if you deploy elsewhere
-    #    Set EE_PRIVATE_KEY_JSON to the full JSON *string*
-    env_json = os.environ.get("EE_PRIVATE_KEY_JSON")
-    if env_json:
-        info = json.loads(env_json)
-        return service_account.Credentials.from_service_account_info(
-            info,
-            scopes=[
-                "https://www.googleapis.com/auth/earthengine",
-                "https://www.googleapis.com/auth/devstorage.full_control",
-            ],
-        )
+def _get_oauth_credentials():
+    data = st.secrets.get("ee_private_key") or os.environ.get("EE_OAUTH_JSON")
+    if not data:
+        return None
+    info = json.loads(data) if isinstance(data, str) else dict(data)
 
-    return None
+    # Must contain: client_id, client_secret, refresh_token, scopes (list)
+    needed = {"client_id", "client_secret", "refresh_token", "scopes"}
+    if not needed.issubset(info.keys()):
+        return None
 
-creds = _get_ee_credentials()
-project = st.secrets.get("ee_project", os.environ.get("EE_PROJECT"))
+    return UserCredentials(
+        token=None,
+        refresh_token=info["refresh_token"],
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=info["client_id"],
+        client_secret=info["client_secret"],
+        scopes=info["scopes"],
+    )
+
+project = st.secrets.get("ee_project") or os.environ.get("EE_PROJECT")
+creds = _get_oauth_credentials()
 
 if creds and project:
     ee.Initialize(credentials=creds, project=project)
 else:
+    # Local interactive fallback only (won't work on Streamlit Cloud)
     try:
         ee.Initialize(project=project)
     except Exception:
         ee.Authenticate()
         ee.Initialize(project=project)
+
+
+
+
 
 st.set_page_config(layout="wide")
 
