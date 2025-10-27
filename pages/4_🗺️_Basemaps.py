@@ -1,6 +1,7 @@
 
 import streamlit as st
 import leafmap.foliumap as leafmap
+import ee
 
 # AUTHENTICATE AND INITIALIZE EARTH ENGINE-----------------------------------------------------------------------
 import json, os
