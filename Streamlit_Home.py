@@ -81,34 +81,33 @@ st.markdown(markdown)
 
 MapS = leafmap.Map()
 
-collection = ee.FeatureCollection("TIGER/2018/States")
-
-dataset = ee.ImageCollection('MODIS/061/MOD10A1') \
-          .filter(ee.Filter.date('2025-12-28', '2026-1-05'))
-
-country = (ee.FeatureCollection('users/giswqs/public/countries'))
-
-snowCover = dataset.select('NDSI_Snow_Cover')
-
+# Build an ee.Image (not ImageCollection)
+snowCover = (
+    ee.ImageCollection("MODIS/061/MOD10A1")
+      .filterDate("2025-12-28", "2026-01-05")
+      .select("NDSI_Snow_Cover")
+      .mosaic()
+)
 
 snowCoverVis = {
-  'min': 0.0,
-  'max': 100.0,
-  'palette': ['black', '0dffff', '0524ff', 'ffffff'],
+    "min": 0,
+    "max": 100,
+    "palette": ["000000", "0dffff", "0524ff", "ffffff"],
 }
 
-style = {
-    'color':'white',
-    'width': 0.3,
-    'lineType':'solid',
-    'fillColor':'ffffff00',
-}
+collection = ee.FeatureCollection("TIGER/2018/States")
+country = ee.FeatureCollection("users/giswqs/public/countries")
 
+style_us = {"color": "yellow", "width": 2, "fillColor": "00000000"}
+style_world = {"color": "cyan", "width": 2, "fillColor": "00000000"}
 
-MapS.set_center(-95.13, 43.35, 3.5)
-MapS.add_basemap(basemap='SATELLITE')
-MapS.add_ee_layer(snowCover, snowCoverVis, 'Snow Cover')
-MapS.add_ee_layer(collection.style(**style), {}, 'US States')
-MapS.add_ee_layer(country.style(**style), {}, 'World Countries')
+MapS.set_center(-95.13, 43.35, 4)                 # zoom int
+MapS.add_basemap("SATELLITE")
 
-MapS.to_streamlit()
+# Add EE layers
+MapS.add_ee_layer(snowCover, snowCoverVis, "Snow Cover")
+MapS.add_ee_layer(collection.style(**style_us), {}, "US States")
+MapS.add_ee_layer(country.style(**style_world), {}, "World Countries")
+
+MapS.add_layer_control()
+MapS.to_streamlit(height=700)
