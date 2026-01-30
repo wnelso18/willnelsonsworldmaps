@@ -107,8 +107,8 @@ style = {
 
 MapS.set_center(-95.13, 43.35, 3.5)
 MapS.add_basemap(basemap='SATELLITE')
-MapS.addLayer(snowCover, snowCoverVis, 'Snow Cover')
-MapS.addLayer(collection.style(**style), {}, 'US States')
-MapS.addLayer(country.style(**style), {}, 'World Countries')
+MapS.add_layer(snowCover, snowCoverVis, 'Snow Cover')
+MapS.add_layer(collection.style(**style), {}, 'US States')
+MapS.add_layer(country.style(**style), {}, 'World Countries')
 
 MapS.to_streamlit()
