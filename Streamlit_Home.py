@@ -89,13 +89,27 @@ snowCover = (
       .mosaic()
 )
 
+snowCoverVis = {
+    "min": 0,
+    "max": 100,
+    "palette": ["000000", "0dffff", "0524ff", "ffffff"],
+}
+
+collection = ee.FeatureCollection("TIGER/2018/States")
+country = ee.FeatureCollection("users/giswqs/public/countries")
+
+style_us = {"color": "yellow", "width": 2, "fillColor": "00000000"}
+style_world = {"color": "cyan", "width": 2, "fillColor": "00000000"}
+
 MapS = leafmap.Map()
 MapS.set_center(-95.13, 43.35, 4)
 MapS.add_basemap("SATELLITE")
 
+# Add EE layers
 MapS.add_ee_layer(ee_object=snowCover, vis_params=snowCoverVis, name="Snow Cover")
 MapS.add_ee_layer(ee_object=collection.style(**style), vis_params={}, name="US States")
 MapS.add_ee_layer(ee_object=country.style(**style), vis_params={}, name="World Countries")
 
+
 MapS.add_layer_control()
-MapS.to_streamlit(height=700)
+MapS.to_streamlit(height=700) 
