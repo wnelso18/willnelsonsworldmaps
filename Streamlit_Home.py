@@ -105,11 +105,7 @@ MapS.set_center(-95.13, 43.35, 4)                 # zoom int
 MapS.add_basemap("SATELLITE")
 
 # Add EE layers
-try:
-    MapS.add_ee_layer(snowCover, snowCoverVis, "Snow Cover")
-except Exception as e:
-    st.exception(e)
-
+MapS.add_ee_layer(snowCover, snowCoverVis, "Snow Cover")
 MapS.add_ee_layer(collection.style(**style_us), {}, "US States")
 MapS.add_ee_layer(country.style(**style_world), {}, "World Countries")
 
