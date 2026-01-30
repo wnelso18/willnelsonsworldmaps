@@ -107,8 +107,8 @@ MapS.add_basemap("SATELLITE")
 
 # Add EE layers
 MapS.add_ee_layer(ee_object=snowCover, vis_params=snowCoverVis, name="Snow Cover")
-MapS.add_ee_layer(ee_object=collection.style(**style), vis_params={}, name="US States")
-MapS.add_ee_layer(ee_object=country.style(**style), vis_params={}, name="World Countries")
+MapS.add_ee_layer(ee_object=collection.style(**style_us), vis_params={}, name="US States")
+MapS.add_ee_layer(ee_object=country.style(**style_world), vis_params={}, name="World Countries")
 
 
 MapS.add_layer_control()
