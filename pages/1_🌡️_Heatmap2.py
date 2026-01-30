@@ -1,6 +1,7 @@
 import streamlit as st
 import ee
-import geemap.foliumap as geemap
+# import geemap.foliumap as geemap
+import leafmap.foliumap as leafmap
 
 # AUTHENTICATE AND INITIALIZE EARTH ENGINE-----------------------------------------------------------------------
 import json, os
@@ -53,7 +54,7 @@ st.markdown(
     """
 )
 
-Map = geemap.Map()
+Map = leafmap.Map()
 
 land9099 = (
     ee.ImageCollection("ECMWF/ERA5_LAND/MONTHLY")
@@ -81,8 +82,8 @@ vis = {
 }
 
 
-left_layer = geemap.ee_tile_layer(land9099, vis, 'Land Temps 9099')
-right_layer = geemap.ee_tile_layer(land1019, vis, 'Land Temps 1019')
+left_layer = leafmap.ee_tile_layer(land9099, vis, 'Land Temps 9099')
+right_layer = leafmap.ee_tile_layer(land1019, vis, 'Land Temps 1019')
 
 # --------------------------------------------------------------------------------------
 

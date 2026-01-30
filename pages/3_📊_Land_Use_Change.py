@@ -1,6 +1,7 @@
 import streamlit as st
 import ee
-import geemap.foliumap as geemap
+# import leafmap.foliumap as leafmap
+import leafmap.foliumap as leafmap
 import geopandas as gpd
 import pandas as pd
 import tempfile
@@ -93,7 +94,7 @@ with row1_col1:
 
     year = st.selectbox('Select a Year to View', ('2001', '2004', '2006', '2008', '2011', '2013', '2016', '2019'))
 
-    Map1 = geemap.Map(  
+    Map1 = leafmap.Map(  
                 basemap="HYBRID",
                 plugin_Draw=True,
                 Draw_export=True,
@@ -126,7 +127,7 @@ with row1_col1:
                 )
     else:
         gdf = uploaded_file_to_gdf(data)
-        st.session_state["roi"] = geemap.gdf_to_ee(gdf, geodesic=False)
+        st.session_state["roi"] = leafmap.gdf_to_ee(gdf, geodesic=False)
         Map1.add_gdf(gdf, "ROI")
         Map1.centerObject(st.session_state["roi"], 8)
 
@@ -165,7 +166,7 @@ with row1_col2:
 
             csv = "zonal_stats.csv"
             
-            geemap.zonal_stats_by_group(
+            leafmap.zonal_stats_by_group(
                 landcover,
                 st.session_state["roi"],
                 csv,
@@ -187,7 +188,7 @@ with row1_col2:
             zst = pd.read_csv('zonal_stats_transposed.csv')
 
 
-            chart1 = geemap.histogram(
+            chart1 = leafmap.histogram(
                 data=zst,
                 x='Unnamed: 0',
                 y='0',
@@ -208,7 +209,7 @@ with row1_col2:
 
             zst = pd.read_csv('zonal_stats_transposed.csv')
 
-            chart2 = geemap.pie_chart(
+            chart2 = leafmap.pie_chart(
                 data=zst,
                 names='Unnamed: 0',
                 values='0',
@@ -234,8 +235,8 @@ with row1_col2:
             year1_csv = "zonal_stats_year1.csv"
             year2_csv = "zonal_stats_year2.csv"
 
-            geemap.zonal_stats_by_group(landcover2, st.session_state["roi"], year1_csv, statistics_type='SUM', denominator=1000000, scale=1000)
-            geemap.zonal_stats_by_group(landcover3, st.session_state["roi"], year2_csv, statistics_type='SUM', denominator=1000000, scale=1000)
+            leafmap.zonal_stats_by_group(landcover2, st.session_state["roi"], year1_csv, statistics_type='SUM', denominator=1000000, scale=1000)
+            leafmap.zonal_stats_by_group(landcover3, st.session_state["roi"], year2_csv, statistics_type='SUM', denominator=1000000, scale=1000)
             
             
             # TRANSPOSE THE CSV FILES --------------------------------------------

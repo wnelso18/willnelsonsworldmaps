@@ -1,6 +1,6 @@
 import streamlit as st
 import leafmap.foliumap as leafmap
-import geemap.foliumap as geemap
+# import geemap.foliumap as geemap
 import ee
 
 
@@ -79,7 +79,7 @@ Enjoy this first Map as it shows up-to-date information about global snow cover!
 
 st.markdown(markdown)
 
-MapS = geemap.Map()
+MapS = leafmap.Map()
 
 collection = ee.FeatureCollection("TIGER/2018/States")
 
