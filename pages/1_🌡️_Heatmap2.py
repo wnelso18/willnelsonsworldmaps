@@ -85,13 +85,6 @@ vis = {
     ],
 }
 
-# ... after split_map(...)
-m.add_colorbar(
-    colors=vis["palette"],
-    vmin=vis["min"],
-    vmax=vis["max"],
-    label="Temp (°C)",
-)
 
 left_layer = ee_to_folium_tilelayer(land_9099, vis, "Land Temps 1990–1999")
 right_layer = ee_to_folium_tilelayer(land_1019, vis, "Land Temps 2010–2019")
@@ -99,6 +92,7 @@ right_layer = ee_to_folium_tilelayer(land_1019, vis, "Land Temps 2010–2019")
 # ---------------- Leafmap map + split control ----------------
 m = leafmap.Map()
 m.split_map(left_layer, right_layer)
+
 
 m.add_colorbar(
     colors=vis["palette"],
