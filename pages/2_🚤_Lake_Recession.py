@@ -94,9 +94,10 @@ img_2001, img_2020 = get_landsat_composites()
 
 # Use a sane natural-color stretch (scaled reflectance)
 vis = {
-    "bands": ["SR_B3", "SR_B2", "SR_B1"],  # natural color
+    "bands": ["SR_B7", "SR_B5", "SR_B3"],  # SWIR2, SWIR1, Red
     "min": 0.02,
-    "max": 0.30,
+    "max": 0.40,
+    "gamma": 1.1,
 }
 
 def ee_to_tilelayer(ee_image: ee.Image, vis_params: dict, name: str) -> folium.TileLayer:
