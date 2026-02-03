@@ -117,19 +117,26 @@ left_layer = ee_to_folium_tilelayer(collection_2001, vis, "Year of 2001")
 right_layer = ee_to_folium_tilelayer(collection_2020, vis, "Year of 2020")
 
 # ---------------- Factory to build each split map ----------------
-def make_split_map(center_lon: float, center_lat: float, zoom: int) -> leafmap.Map:
+def make_split_map(center_lat: float, center_lon: float, zoom: int) -> leafmap.Map:
     m = leafmap.Map(dragging=False, scrollWheelZoom=False, zoomControl=False)
+
+    # Optional: give it a visible basemap so it never looks "blank"
+    m.add_basemap("HYBRID")  # or "SATELLITE", "ROADMAP"
+
     m.split_map(left_layer, right_layer)
     m.add_text(date1, **params1)
     m.add_text(date2, **params2)
-    m.set_center(center_lon, center_lat, zoom)
+
+    # NOTE: leafmap (folium) uses lat, lon
+    m.set_center(center_lat, center_lon, zoom)
     return m
 
-# Prebuild maps (fast switch in UI)
-Map1 = make_split_map(-114.41, 36.20, 10)  # Lake Mead
-Map2 = make_split_map(-115.85446197484563, 33.31321356759435, 10)  # Salton Sea
-Map3 = make_split_map(-112.43915367456692, 41.08008337991904, 9)  # Great Salt Lake
-Map4 = make_split_map(59.013008598795004, 45.25402686187612, 8)  # Aral Sea
+# Prebuild maps (lat, lon)
+Map1 = make_split_map(36.20, -114.41, 10)                    # Lake Mead
+Map2 = make_split_map(33.31321356759435, -115.85446197484563, 10)  # Salton Sea
+Map3 = make_split_map(41.08008337991904, -112.43915367456692, 9)   # Great Salt Lake
+Map4 = make_split_map(45.25402686187612, 59.013008598795004, 8)    # Aral Sea
+
 
 # ---------------- UI selector ----------------
 option = st.selectbox(
