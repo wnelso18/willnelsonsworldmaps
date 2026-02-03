@@ -43,12 +43,12 @@ def init_ee():
 init_ee()
 
 # =============================================================================
-# PAGE CONFIG
+# PAGE
 # =============================================================================
 st.set_page_config(layout="wide")
 
 # =============================================================================
-# NLCD LABELS + COLORS (compact legend)
+# NLCD LABELS + COLORS
 # =============================================================================
 NLCD_CLASSES = {
     "Class_11": "11 - Open Water",
@@ -73,7 +73,7 @@ NLCD_CLASSES = {
     "Class_95": "95 - Emergent Herbaceous Wetlands",
 }
 
-# NLCD class colors as hex (no '#'), used for palette + compact legend
+# Hex colors (no '#') used for palette + compact legend
 NLCD_COLORS = {
     11: ("Open Water", "466B9F"),
     12: ("Perennial Ice/Snow", "D1DEF8"),
@@ -120,11 +120,8 @@ def geojson_upload_to_ee_geometry(uploaded_file):
         if data["type"] == "FeatureCollection":
             feats = data.get("features", [])
             geoms = [f.get("geometry") for f in feats if f.get("geometry")]
-
             if not geoms:
                 return None
-
-            # If multiple geometries, union them into one geometry (robust)
             ee_geoms = [ee.Geometry(g) for g in geoms]
             merged = ee.Geometry(ee_geoms[0])
             for g in ee_geoms[1:]:
@@ -160,8 +157,8 @@ def st_draw_to_ee_geometry(draw_output):
     return None
 
 
-def add_compact_nlcd_legend(m: foliumap.Map, year: str):
-    """Inject a small, scrollable NLCD legend into a folium/leafmap map."""
+def add_compact_nlcd_legend_bottom_right(m: foliumap.Map, year: str):
+    """Small, scrollable legend anchored bottom-right."""
     class_values = list(NLCD_COLORS.keys())
 
     rows = "".join(
@@ -177,7 +174,7 @@ def add_compact_nlcd_legend(m: foliumap.Map, year: str):
     html = f"""
     <div style="
       position: fixed;
-      bottom: 18px; left: 18px;
+      bottom: 18px; right: 18px;
       z-index: 9999;
       background: rgba(255,255,255,0.92);
       padding: 8px 10px;
@@ -196,10 +193,7 @@ def add_compact_nlcd_legend(m: foliumap.Map, year: str):
 
 
 def zonal_stats_landcover_km2(landcover_img: ee.Image, roi: ee.Geometry, scale=30):
-    """
-    leafmap.zonal_stats_by_group -> tidy DataFrame:
-      class_key, class_label, area_km2
-    """
+    """leafmap.zonal_stats_by_group -> tidy DataFrame: class_key, class_label, area_km2"""
     tmp_csv = os.path.join(tempfile.gettempdir(), f"zonal_{next(tempfile._get_candidate_names())}.csv")
 
     leafmap.zonal_stats_by_group(
@@ -230,7 +224,7 @@ def zonal_stats_landcover_km2(landcover_img: ee.Image, roi: ee.Geometry, scale=3
 
 
 # =============================================================================
-# EE DATASET (analytics + display)
+# EE DATASET
 # =============================================================================
 dataset = ee.ImageCollection("USGS/NLCD_RELEASES/2019_REL/NLCD")
 
@@ -241,13 +235,12 @@ def ee_landcover_for_year(y: str) -> ee.Image:
 
 def nlcd_display_layer_for_year(y: str):
     """
-    Build a discrete-color EE layer that will ALWAYS display properly in folium,
-    independent of leafmap version, by remapping NLCD class values to 0..N-1.
+    Discrete-color NLCD display guaranteed in folium:
+    remap class values -> 0..N-1 + palette.
     """
     landcover = ee_landcover_for_year(y)
     class_values = list(NLCD_COLORS.keys())
     palette = [NLCD_COLORS[v][1] for v in class_values]
-
     remapped = landcover.remap(class_values, list(range(len(class_values)))).rename("nlcd")
     vis = {"min": 0, "max": len(class_values) - 1, "palette": palette}
     return remapped, vis
@@ -269,26 +262,37 @@ with row1_col1:
     st.subheader("ROI Selection")
     data = st.file_uploader("Upload a .geojson ROI (optional)", type=["geojson"])
 
-    # One and only one draw toolbar to prevent duplicates
+    # -------------------------------------------------------------------------
+    # IMPORTANT: Eliminate duplicate toolbar by using ONLY the plugin flags,
+    # and NOT the newer draw_control flag at the same time.
+    # This gives you a single toolbar + an export button.
+    # -------------------------------------------------------------------------
     m = foliumap.Map(
         basemap="HYBRID",
         center=[38, -95],
         zoom=4,
-        draw_control=True,
-        measure_control=False,
+
+        # Use plugin flags for drawing + export (single toolbar)
+        plugin_Draw=True,
+        Draw_export=True,
+
+        # Make sure we do NOT add a second draw control
+        draw_control=False,
+
         locate_control=True,
         scale_control=False,
+        measure_control=False,
         fullscreen_control=False,
     )
 
-    # NLCD display (robust)
+    # NLCD display
     nlcd_img, nlcd_vis = nlcd_display_layer_for_year(year)
     m.add_ee_layer(ee_object=nlcd_img, vis_params=nlcd_vis, name=f"NLCD {year}")
 
-    # Small legend (robust)
-    add_compact_nlcd_legend(m, year)
+    # Compact legend bottom-right
+    add_compact_nlcd_legend_bottom_right(m, year)
 
-    # Render map, capture draw output
+    # Render map + capture draw output
     st_map = m.to_streamlit(width=850, height=600)
     try:
         drawn = m.st_last_draw(st_map)
@@ -310,7 +314,7 @@ with row1_col1:
         st.success(f"ROI ready ({roi_source}).")
         st.session_state["roi"] = roi
     else:
-        st.info("Draw a polygon/rectangle on the map OR upload a GeoJSON ROI to enable stats.")
+        st.info("Draw a polygon/rectangle on the map (use Export to download GeoJSON if desired) OR upload a GeoJSON ROI.")
         st.session_state.pop("roi", None)
 
 
@@ -321,14 +325,11 @@ with row1_col2:
         histogram = st.checkbox("Histogram")
         pie_chart = st.checkbox("Pie Chart")
         scatter_plot = st.checkbox("Scatter Plot")
-
         st.write("Note: The selected year above is used for Histogram/Pie.")
         st.markdown("---")
-
         st.write("Scatter Plot Years:")
         year1 = st.selectbox("Year 1", YEARS, index=0)
         year2 = st.selectbox("Year 2", YEARS, index=len(YEARS) - 1)
-
         submit_button = st.form_submit_button("Submit")
 
 
@@ -341,7 +342,6 @@ if submit_button:
     else:
         roi = st.session_state["roi"]
 
-        # Histogram + Pie use selected year
         landcover = ee_landcover_for_year(year)
 
         if histogram:
