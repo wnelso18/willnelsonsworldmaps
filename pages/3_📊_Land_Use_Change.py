@@ -212,34 +212,41 @@ def featurecollection_json_from_geometry(geom: dict) -> str:
     fc = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {}, "geometry": geom}]}
     return json.dumps(fc)
 
-def zonal_stats_landcover_km2(landcover_img: ee.Image, roi: ee.Geometry, scale=30) -> pd.DataFrame:
-    tmp_csv = os.path.join(tempfile.gettempdir(), f"zonal_{next(tempfile._get_candidate_names())}.csv")
+def ee_landcover_group_area_km2(landcover_img: ee.Image, roi: ee.Geometry, scale: int = 30) -> pd.DataFrame:
+    """
+    Returns a tidy dataframe of NLCD class areas (km²) within ROI using EE pixelArea + reduceRegion(group).
+    No leafmap helper functions required.
+    """
+    # NLCD landcover band is categorical; group reducer expects an integer class band.
+    lc = ee.Image(landcover_img).rename("lc").toInt()
 
-    leafmap.zonal_stats_by_group(
-        landcover_img,
-        roi,
-        tmp_csv,
-        statistics_type="SUM",
-        denominator=1_000_000,  # m² -> km²
+    # Compute area per pixel and group by class value
+    area_img = ee.Image.pixelArea().divide(1_000_000).rename("area_km2")  # m² -> km²
+
+    grouped = area_img.addBands(lc).reduceRegion(
+        reducer=ee.Reducer.sum().group(groupField=1, groupName="class"),
+        geometry=roi,
         scale=scale,
-        decimal_places=3,
+        maxPixels=1e13,
+        bestEffort=True,
     )
 
-    df = pd.read_csv(tmp_csv)
-    if df.empty:
-        return pd.DataFrame(columns=["class_key", "class_label", "area_km2"])
+    groups = ee.List(grouped.get("groups"))
+    groups_info = groups.getInfo() if groups is not None else []
 
-    row = df.iloc[0].to_dict()
-    items = []
-    for k, v in row.items():
-        if isinstance(k, str) and k.startswith("Class_") and k != "Class_sum":
-            if v is None:
-                continue
-            items.append((k, NLCD_CLASSES.get(k, k), float(v)))
+    # Build DataFrame
+    rows = []
+    for g in groups_info:
+        cls = int(g.get("class"))
+        area = float(g.get("sum", 0.0))
+        # Convert class value -> your Class_XX key
+        key = f"Class_{cls}"
+        label = NLCD_CLASSES.get(key, f"{cls}")
+        rows.append((key, label, area))
 
-    out = pd.DataFrame(items, columns=["class_key", "class_label", "area_km2"])
-    out = out.sort_values("area_km2", ascending=False).reset_index(drop=True)
-    return out
+    df = pd.DataFrame(rows, columns=["class_key", "class_label", "area_km2"])
+    df = df.sort_values("area_km2", ascending=False).reset_index(drop=True)
+    return df
 
 # =============================================================================
 # UI LAYOUT
