@@ -121,7 +121,7 @@ def make_split_map(center_lat: float, center_lon: float, zoom: int) -> leafmap.M
         zoom=zoom,
         dragging=False,
         scrollWheelZoom=False,
-        zoomControl=False,
+        zoomControl=True,
     )
 
     # Give the user something even if EE tiles are slow
