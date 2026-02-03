@@ -347,11 +347,14 @@ if submit_button:
         st.warning("No ROI selected yet. Draw/upload an ROI first.")
     else:
         roi = st.session_state["roi"]
+
+        # Histogram + Pie use the main selected year
         landcover = ee_landcover_for_year(year)
 
         if histogram:
-            df_stats = zonal_stats_landcover_km2(landcover, roi, scale=30)
+            df_stats = ee_landcover_group_area_km2(landcover, roi, scale=30)
             st.session_state["df_stats_year"] = df_stats
+
             fig = px.bar(
                 df_stats.head(15),
                 x="class_label",
@@ -366,9 +369,15 @@ if submit_button:
         if pie_chart:
             df_stats = st.session_state.get("df_stats_year")
             if df_stats is None:
-                df_stats = zonal_stats_landcover_km2(landcover, roi, scale=30)
+                df_stats = ee_landcover_group_area_km2(landcover, roi, scale=30)
                 st.session_state["df_stats_year"] = df_stats
-            fig = px.pie(df_stats, names="class_label", values="area_km2", title=f"NLCD Composition ({year})")
+
+            fig = px.pie(
+                df_stats,
+                names="class_label",
+                values="area_km2",
+                title=f"NLCD Composition ({year})",
+            )
             fig.update_layout(title_x=0.5)
             with row1_col1:
                 st.plotly_chart(fig, use_container_width=True)
@@ -377,8 +386,8 @@ if submit_button:
             lc1 = ee_landcover_for_year(year1)
             lc2 = ee_landcover_for_year(year2)
 
-            df1 = zonal_stats_landcover_km2(lc1, roi, scale=30).rename(columns={"area_km2": "area_km2_y1"})
-            df2 = zonal_stats_landcover_km2(lc2, roi, scale=30).rename(columns={"area_km2": "area_km2_y2"})
+            df1 = ee_landcover_group_area_km2(lc1, roi, scale=30).rename(columns={"area_km2": "area_km2_y1"})
+            df2 = ee_landcover_group_area_km2(lc2, roi, scale=30).rename(columns={"area_km2": "area_km2_y2"})
 
             compare = pd.merge(df1, df2, on=["class_key", "class_label"], how="outer").fillna(0.0)
             st.session_state["compare_df"] = compare
@@ -403,6 +412,7 @@ if submit_button:
             fig.update_layout(title_x=0.5)
             with row1_col1:
                 st.plotly_chart(fig, use_container_width=True)
+
 
 # =============================================================================
 # PERCENT GAIN/LOSS
