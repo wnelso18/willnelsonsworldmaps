@@ -279,7 +279,7 @@ with row1_col1:
 
     # One draw toolbar (polygon + rectangle only)
     Draw(
-        export=False,  # We'll provide Streamlit download for export (more reliable)
+        export=True,  # We'll provide Streamlit download for export (more reliable)
         draw_options={
             "polyline": False,
             "polygon": True,
