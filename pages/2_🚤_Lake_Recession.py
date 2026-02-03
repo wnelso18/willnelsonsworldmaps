@@ -2,6 +2,7 @@ import streamlit as st
 import ee
 import leafmap.foliumap as leafmap
 import folium
+from folium.plugins import SideBySideLayers
 
 # ---------------- EE AUTH ----------------
 import json, os
@@ -17,7 +18,6 @@ def init_ee():
         st.stop()
 
     info = json.loads(data) if isinstance(data, str) else dict(data)
-
     needed = {"client_id", "client_secret", "refresh_token", "scopes"}
     if not needed.issubset(info.keys()):
         st.error("ee_private_key must contain client_id, client_secret, refresh_token, scopes.")
@@ -31,7 +31,6 @@ def init_ee():
         client_secret=info["client_secret"],
         scopes=info["scopes"],
     )
-
     ee.Initialize(credentials=creds, project=project)
     return True
 
@@ -41,7 +40,6 @@ init_ee()
 st.set_page_config(layout="wide")
 
 st.header("Lake Recession")
-
 st.markdown(
     """All maps show the same time period change from 2001–2020.
 
@@ -74,71 +72,81 @@ params2 = {
     "position": "bottomright",
 }
 
-# ---------------- Helper: EE -> Folium TileLayer ----------------
-def ee_to_folium_tilelayer(ee_image: ee.Image, vis_params: dict, name: str) -> folium.TileLayer:
-    """Create a folium.TileLayer from an ee.Image."""
-    map_id_dict = ee.Image(ee_image).getMapId(vis_params)
+# ---------------- Helpers ----------------
+def landsat7_sr_scaled(img: ee.Image) -> ee.Image:
+    """
+    Landsat Collection 2 Level-2 SR scaling:
+      reflectance = SR * 0.0000275 + (-0.2)
+    Applies to SR_B1..SR_B7.
+    """
+    sr = img.select(["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B7"]) \
+            .multiply(0.0000275).add(-0.2)
+    return img.addBands(sr, overwrite=True)
+
+@st.cache_resource
+def get_landsat_composites():
+    ic = ee.ImageCollection("LANDSAT/LE07/C02/T1_L2").map(landsat7_sr_scaled)
+    img_2001 = ic.filterDate("2001-01-01", "2002-01-01").median()
+    img_2020 = ic.filterDate("2020-01-01", "2021-01-01").median()
+    return img_2001, img_2020
+
+img_2001, img_2020 = get_landsat_composites()
+
+# Use a sane natural-color stretch (scaled reflectance)
+vis = {
+    "bands": ["SR_B3", "SR_B2", "SR_B1"],  # natural color
+    "min": 0.02,
+    "max": 0.30,
+}
+
+def ee_to_tilelayer(ee_image: ee.Image, vis_params: dict, name: str) -> folium.TileLayer:
+    """
+    IMPORTANT: do NOT cache this. getMapId() returns a tokenized tile URL.
+    """
+    map_id = ee.Image(ee_image).getMapId(vis_params)
     return folium.TileLayer(
-        tiles=map_id_dict["tile_fetcher"].url_format,
+        tiles=map_id["tile_fetcher"].url_format,
         attr="Google Earth Engine",
         name=name,
         overlay=True,
         control=True,
+        opacity=1.0,
     )
 
-# ---------------- Landsat composites (build once, reuse) ----------------
-# Note: Landsat 7 SR has scale factors. Your original code didn’t apply scaling,
-# so this keeps your behavior the same (raw SR integers).
-@st.cache_resource
-def get_landsat7_composites():
-    ic = ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
-
-    img_2001 = (
-        ic.filterDate("2001-01-01", "2002-01-01")
-          .median()
-    )
-
-    img_2020 = (
-        ic.filterDate("2020-01-01", "2021-01-01")
-          .median()
-    )
-
-    return img_2001, img_2020
-
-collection_2001, collection_2020 = get_landsat7_composites()
-
-vis = {
-    "bands": ["SR_B1", "SR_B4", "SR_B7"],
-    "min": 0,
-    "max": 40000,
-}
-
-left_layer = ee_to_folium_tilelayer(collection_2001, vis, "Year of 2001")
-right_layer = ee_to_folium_tilelayer(collection_2020, vis, "Year of 2020")
-
-# ---------------- Factory to build each split map ----------------
 def make_split_map(center_lat: float, center_lon: float, zoom: int) -> leafmap.Map:
-    m = leafmap.Map(dragging=False, scrollWheelZoom=False, zoomControl=False)
+    # Set center/zoom in constructor (no lon/lat ambiguity)
+    m = leafmap.Map(
+        center=[center_lat, center_lon],
+        zoom=zoom,
+        dragging=False,
+        scrollWheelZoom=False,
+        zoomControl=False,
+    )
 
-    # Optional: give it a visible basemap so it never looks "blank"
-    m.add_basemap("HYBRID")  # or "SATELLITE", "ROADMAP"
+    # Give the user something even if EE tiles are slow
+    m.add_basemap("HYBRID")
 
-    m.split_map(left_layer, right_layer)
+    # Create fresh EE tile layers each run (tokenized URLs)
+    left = ee_to_tilelayer(img_2001, vis, "Year of 2001")
+    right = ee_to_tilelayer(img_2020, vis, "Year of 2020")
+
+    # MUST add layers to map BEFORE SideBySideLayers
+    left.add_to(m)
+    right.add_to(m)
+
+    SideBySideLayers(left, right).add_to(m)
+
     m.add_text(date1, **params1)
     m.add_text(date2, **params2)
 
-    # NOTE: leafmap (folium) uses lat, lon
-    m.set_center(center_lat, center_lon, zoom)
     return m
 
 # Prebuild maps (lat, lon)
-Map1 = make_split_map(36.20, -114.41, 10)                    # Lake Mead
+Map1 = make_split_map(36.20, -114.41, 10)                      # Lake Mead
 Map2 = make_split_map(33.31321356759435, -115.85446197484563, 10)  # Salton Sea
 Map3 = make_split_map(41.08008337991904, -112.43915367456692, 9)   # Great Salt Lake
 Map4 = make_split_map(45.25402686187612, 59.013008598795004, 8)    # Aral Sea
 
-
-# ---------------- UI selector ----------------
 option = st.selectbox(
     "Which lake would you like to view?",
     ("Lake Mead, NV", "Salton Sea, CA", "Great Salt Lake, UT", "Aral Sea, Kazakhstan/Uzebekistan"),
