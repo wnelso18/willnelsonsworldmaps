@@ -119,7 +119,7 @@ def make_split_map(center_lat: float, center_lon: float, zoom: int) -> leafmap.M
     m = leafmap.Map(
         center=[center_lat, center_lon],
         zoom=zoom,
-        dragging=False,
+        dragging=True,
         scrollWheelZoom=True,
         zoomControl=True,
     )
