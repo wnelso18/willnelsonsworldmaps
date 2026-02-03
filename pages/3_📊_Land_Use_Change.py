@@ -12,7 +12,6 @@ import tempfile
 import plotly.express as px
 from google.oauth2.credentials import Credentials as UserCredentials
 
-
 # =============================================================================
 # EE AUTH
 # =============================================================================
@@ -46,7 +45,6 @@ def init_ee():
 init_ee()
 st.set_page_config(layout="wide")
 
-
 # =============================================================================
 # CONSTANTS
 # =============================================================================
@@ -75,7 +73,7 @@ NLCD_CLASSES = {
     "Class_95": "95 - Emergent Herbaceous Wetlands",
 }
 
-# NLCD class colors (hex without '#') for discrete palette + legend
+# Hex colors (no '#') used for discrete palette + compact legend
 NLCD_COLORS = {
     11: ("Open Water", "466B9F"),
     12: ("Perennial Ice/Snow", "D1DEF8"),
@@ -99,26 +97,30 @@ NLCD_COLORS = {
     95: ("Emergent Herbaceous Wetlands", "6C9FB8"),
 }
 
+# =============================================================================
+# EE DATA
+# =============================================================================
+dataset = ee.ImageCollection("USGS/NLCD_RELEASES/2019_REL/NLCD")
+
+def ee_landcover_for_year(y: str) -> ee.Image:
+    img = dataset.filter(ee.Filter.eq("system:index", y)).first()
+    return ee.Image(img).select("landcover")
+
+def nlcd_display_layer_for_year(y: str):
+    """
+    Discrete-color NLCD display guaranteed in Folium:
+    remap original class values -> 0..N-1 + palette
+    """
+    landcover = ee_landcover_for_year(y)
+    class_values = list(NLCD_COLORS.keys())
+    palette = [NLCD_COLORS[v][1] for v in class_values]
+    remapped = landcover.remap(class_values, list(range(len(class_values)))).rename("nlcd")
+    vis = {"min": 0, "max": len(class_values) - 1, "palette": palette}
+    return remapped, vis, landcover
 
 # =============================================================================
 # HELPERS
 # =============================================================================
-def ee_to_tilelayer(ee_image: ee.Image, vis_params: dict, name: str, opacity: float = 0.85) -> folium.TileLayer:
-    """
-    Create a Folium TileLayer from an EE image.
-    IMPORTANT: do not cache getMapId() outputs (tokenized).
-    """
-    map_id = ee.Image(ee_image).getMapId(vis_params)
-    return folium.TileLayer(
-        tiles=map_id["tile_fetcher"].url_format,
-        attr="Google Earth Engine",
-        name=name,
-        overlay=True,
-        control=True,
-        opacity=opacity,
-    )
-
-
 def add_compact_legend_bottom_right(m: foliumap.Map, year: str):
     class_values = list(NLCD_COLORS.keys())
     rows = "".join(
@@ -130,7 +132,6 @@ def add_compact_legend_bottom_right(m: foliumap.Map, year: str):
         """
         for v in class_values
     )
-
     html = f"""
     <div style="
       position: fixed;
@@ -151,16 +152,11 @@ def add_compact_legend_bottom_right(m: foliumap.Map, year: str):
     """
     m.get_root().html.add_child(folium.Element(html))
 
-
 def geojson_upload_to_ee_geometry(uploaded_file):
-    """Convert uploaded GeoJSON (Geometry/Feature/FeatureCollection) to ee.Geometry."""
     data = json.loads(uploaded_file.getvalue().decode("utf-8"))
 
     if isinstance(data, dict) and "type" in data:
-        if data["type"] in (
-            "Polygon", "MultiPolygon", "Point", "MultiPoint",
-            "LineString", "MultiLineString"
-        ):
+        if data["type"] in ("Polygon", "MultiPolygon", "Point", "MultiPoint", "LineString", "MultiLineString"):
             return ee.Geometry(data)
 
         if data["type"] == "Feature":
@@ -180,17 +176,43 @@ def geojson_upload_to_ee_geometry(uploaded_file):
 
     return None
 
+def extract_latest_drawn_geometry(st_map_result):
+    """
+    Robustly extract the most recent drawn geometry from streamlit-folium/leafmap return dict.
+    Returns geometry dict (GeoJSON geometry) or None.
+    """
+    if not isinstance(st_map_result, dict):
+        return None
 
-def feature_for_download(geom: dict) -> str:
-    """Wrap a geometry dict into a FeatureCollection string for downloading."""
+    # Most common fields across versions
+    candidates = [
+        st_map_result.get("last_active_drawing"),
+        st_map_result.get("last_draw"),
+    ]
+
+    for c in candidates:
+        if isinstance(c, dict):
+            if c.get("type") == "Feature" and isinstance(c.get("geometry"), dict):
+                return c["geometry"]
+            if c.get("type") in ("Polygon", "MultiPolygon", "Point", "LineString", "MultiLineString"):
+                return c
+
+    drawings = st_map_result.get("all_drawings")
+    if isinstance(drawings, list) and drawings:
+        last = drawings[-1]
+        if isinstance(last, dict):
+            if last.get("type") == "Feature" and isinstance(last.get("geometry"), dict):
+                return last["geometry"]
+            if last.get("type") in ("Polygon", "MultiPolygon", "Point", "LineString", "MultiLineString"):
+                return last
+
+    return None
+
+def featurecollection_json_from_geometry(geom: dict) -> str:
     fc = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {}, "geometry": geom}]}
     return json.dumps(fc)
 
-
 def zonal_stats_landcover_km2(landcover_img: ee.Image, roi: ee.Geometry, scale=30) -> pd.DataFrame:
-    """
-    leafmap.zonal_stats_by_group -> tidy df: class_key, class_label, area_km2
-    """
     tmp_csv = os.path.join(tempfile.gettempdir(), f"zonal_{next(tempfile._get_candidate_names())}.csv")
 
     leafmap.zonal_stats_by_group(
@@ -219,31 +241,6 @@ def zonal_stats_landcover_km2(landcover_img: ee.Image, roi: ee.Geometry, scale=3
     out = out.sort_values("area_km2", ascending=False).reset_index(drop=True)
     return out
 
-
-# =============================================================================
-# EE DATA
-# =============================================================================
-dataset = ee.ImageCollection("USGS/NLCD_RELEASES/2019_REL/NLCD")
-
-
-def ee_landcover_for_year(y: str) -> ee.Image:
-    img = dataset.filter(ee.Filter.eq("system:index", y)).first()
-    return ee.Image(img).select("landcover")
-
-
-def nlcd_display_layer_for_year(y: str):
-    """
-    Discrete-color NLCD display guaranteed in Folium:
-    remap original class values -> 0..N-1 + palette
-    """
-    landcover = ee_landcover_for_year(y)
-    class_values = list(NLCD_COLORS.keys())
-    palette = [NLCD_COLORS[v][1] for v in class_values]
-    remapped = landcover.remap(class_values, list(range(len(class_values)))).rename("nlcd")
-    vis = {"min": 0, "max": len(class_values) - 1, "palette": palette}
-    return remapped, vis, landcover
-
-
 # =============================================================================
 # UI LAYOUT
 # =============================================================================
@@ -252,16 +249,13 @@ row1_col1, row1_col2 = st.columns([3, 1])
 with row1_col1:
     st.title("Land Use Change in the United States")
     st.write("- View NLCD land cover by year (2001–2019).")
-    st.write("- Draw an ROI on the map OR upload a GeoJSON ROI.")
-    st.write("- Export the drawn ROI as GeoJSON (download button below the map).")
-    st.write("- Generate a histogram, pie chart, scatter comparison, and percent gain/loss.")
+    st.write("- Draw ROI on the map OR upload a GeoJSON ROI.")
+    st.write("- Use the **map toolbar Export** OR the **button below** to download ROI GeoJSON.")
 
     year = st.selectbox("Select a Year to View", YEARS, index=0)
-
-    st.subheader("ROI Selection")
     data = st.file_uploader("Upload a .geojson ROI (optional)", type=["geojson"])
 
-    # ---- Build map (NO built-in draw flags; we add EXACTLY ONE Draw plugin ourselves) ----
+    # ---- Map ----
     m = foliumap.Map(
         basemap="HYBRID",
         center=[38, -95],
@@ -272,14 +266,14 @@ with row1_col1:
         fullscreen_control=False,
     )
 
-    # Add NLCD as an EE tile layer (robust)
     nlcd_img, nlcd_vis, landcover_raw = nlcd_display_layer_for_year(year)
-    ee_layer = ee_to_tilelayer(nlcd_img, nlcd_vis, f"NLCD {year}", opacity=0.90)
-    ee_layer.add_to(m)
+    m.add_ee_layer(ee_object=nlcd_img, vis_params=nlcd_vis, name=f"NLCD {year}")
 
-    # One draw toolbar (polygon + rectangle only)
+    # ---- ONE draw toolbar + EXPORT BUTTON ----
     Draw(
-        export=True,  # We'll provide Streamlit download for export (more reliable)
+        export=True,                 # <-- THIS creates the in-map Export button
+        filename="roi.geojson",      # name of exported file
+        position="topleft",
         draw_options={
             "polyline": False,
             "polygon": True,
@@ -291,57 +285,32 @@ with row1_col1:
         edit_options={"edit": True, "remove": True},
     ).add_to(m)
 
-    # Small legend, bottom-right
     add_compact_legend_bottom_right(m, year)
-
-    # Optional layer control (keeps UI tidy; no duplicate toolbars)
     folium.LayerControl(collapsed=True).add_to(m)
 
-    # Render map
     st_map = m.to_streamlit(width=850, height=600)
 
-    # ---- ROI resolution (uploaded > drawn) ----
+    # ---- ROI priority: upload > drawn ----
     roi = None
     roi_source = None
-    drawn_geom = None
-
-    # Leafmap-to-streamlit return formats vary; handle common keys
-    if isinstance(st_map, dict):
-        # Try several possible keys that show up across streamlit-folium/leafmap versions
-        last = st_map.get("last_active_drawing") or st_map.get("last_draw") or st_map.get("last_object_clicked")
-        if isinstance(last, dict):
-            if last.get("type") == "Feature":
-                drawn_geom = last.get("geometry")
-            elif last.get("type") in ("Polygon", "MultiPolygon", "Point", "LineString", "MultiLineString"):
-                drawn_geom = last
-        # Some versions provide all drawings
-        if drawn_geom is None:
-            drawings = st_map.get("all_drawings")
-            if isinstance(drawings, list) and len(drawings) > 0:
-                # use the most recent
-                feat = drawings[-1]
-                if isinstance(feat, dict) and feat.get("type") == "Feature":
-                    drawn_geom = feat.get("geometry")
 
     if data is not None:
         roi = geojson_upload_to_ee_geometry(data)
         roi_source = "uploaded GeoJSON"
     else:
+        drawn_geom = extract_latest_drawn_geometry(st_map)
         if drawn_geom:
             roi = ee.Geometry(drawn_geom)
             roi_source = "drawn geometry"
 
-    # ---- Export button (this replaces the fragile in-map export control) ----
-    # You can drag-and-drop this downloaded file into your uploader later.
-    if drawn_geom:
-        geojson_str = feature_for_download(drawn_geom)
-        st.download_button(
-            label="⬇️ Export drawn ROI as GeoJSON",
-            data=geojson_str,
-            file_name="roi.geojson",
-            mime="application/geo+json",
-            use_container_width=True,
-        )
+            # Guaranteed Streamlit export button (works even if in-map export is finicky)
+            st.download_button(
+                "⬇️ Export drawn ROI as GeoJSON",
+                data=featurecollection_json_from_geometry(drawn_geom),
+                file_name="roi.geojson",
+                mime="application/geo+json",
+                use_container_width=True,
+            )
 
     if roi:
         st.success(f"ROI ready ({roi_source}).")
@@ -350,39 +319,32 @@ with row1_col1:
         st.info("Draw a polygon/rectangle on the map OR upload a GeoJSON ROI to enable stats.")
         st.session_state.pop("roi", None)
 
-
+# ---------------- Stats selection ----------------
 with row1_col2:
     with st.form("stats_select"):
         st.header("Check the Stats!")
         histogram = st.checkbox("Histogram")
         pie_chart = st.checkbox("Pie Chart")
         scatter_plot = st.checkbox("Scatter Plot")
-        st.write("Note: The selected year above is used for Histogram/Pie.")
+        st.write("Note: Selected year above is used for Histogram/Pie.")
         st.markdown("---")
-        st.write("Scatter Plot Years:")
         year1 = st.selectbox("Year 1", YEARS, index=0)
         year2 = st.selectbox("Year 2", YEARS, index=len(YEARS) - 1)
         submit_button = st.form_submit_button("Submit")
 
-
 # =============================================================================
-# STATS EXECUTION
+# STATS
 # =============================================================================
-def landcover_for_year(y: str) -> ee.Image:
-    return ee_landcover_for_year(y)
-
-
 if submit_button:
     if "roi" not in st.session_state:
         st.warning("No ROI selected yet. Draw/upload an ROI first.")
     else:
         roi = st.session_state["roi"]
-        landcover = landcover_for_year(year)
+        landcover = ee_landcover_for_year(year)
 
         if histogram:
             df_stats = zonal_stats_landcover_km2(landcover, roi, scale=30)
             st.session_state["df_stats_year"] = df_stats
-
             fig = px.bar(
                 df_stats.head(15),
                 x="class_label",
@@ -399,20 +361,14 @@ if submit_button:
             if df_stats is None:
                 df_stats = zonal_stats_landcover_km2(landcover, roi, scale=30)
                 st.session_state["df_stats_year"] = df_stats
-
-            fig = px.pie(
-                df_stats,
-                names="class_label",
-                values="area_km2",
-                title=f"NLCD Composition ({year})",
-            )
+            fig = px.pie(df_stats, names="class_label", values="area_km2", title=f"NLCD Composition ({year})")
             fig.update_layout(title_x=0.5)
             with row1_col1:
                 st.plotly_chart(fig, use_container_width=True)
 
         if scatter_plot:
-            lc1 = landcover_for_year(year1)
-            lc2 = landcover_for_year(year2)
+            lc1 = ee_landcover_for_year(year1)
+            lc2 = ee_landcover_for_year(year2)
 
             df1 = zonal_stats_landcover_km2(lc1, roi, scale=30).rename(columns={"area_km2": "area_km2_y1"})
             df2 = zonal_stats_landcover_km2(lc2, roi, scale=30).rename(columns={"area_km2": "area_km2_y2"})
@@ -441,14 +397,13 @@ if submit_button:
             with row1_col1:
                 st.plotly_chart(fig, use_container_width=True)
 
-
 # =============================================================================
 # PERCENT GAIN/LOSS
 # =============================================================================
 with row1_col2:
     with st.form("class_selection"):
         st.header("Percent Gain/Loss")
-        st.write("Pick which classes to compute percent gain/loss for (requires Scatter Plot run).")
+        st.write("Requires Scatter Plot run first.")
         checks = {k: st.checkbox(v, value=True) for k, v in NLCD_CLASSES.items()}
         submit_button2 = st.form_submit_button("Submit Selection")
 
@@ -457,7 +412,7 @@ if submit_button2:
     years_pair = st.session_state.get("compare_years")
 
     if compare is None or years_pair is None:
-        st.warning("Run the Scatter Plot comparison first (it generates the year1/year2 table).")
+        st.warning("Run the Scatter Plot comparison first.")
     else:
         y1, y2 = years_pair
         compare = compare.copy()
@@ -470,7 +425,6 @@ if submit_button2:
 
         with row1_col1:
             st.subheader(f"Percent Gain/Loss ({y1} → {y2})")
-
             for class_key, enabled in checks.items():
                 if not enabled:
                     continue
